@@ -48,9 +48,9 @@ export HOME=/home/ssm-user
 export DOCKER_IMAGE=quay.io/jupyter/base-notebook:python-3.11
 
 mkdir $HOME/workdir
-sudo chmod 777 $HOME/workdir
+chmod 777 $HOME/workdir
 
-sudo docker run -d --name ${NOTEBOOK_CONTAINER_NAME} \
+docker run -d --name ${NOTEBOOK_CONTAINER_NAME} \
 --restart unless-stopped \
 -e DOCKER_STACKS_JUPYTER_CMD=notebook \
 -v $HOME/workdir:/home/jovyan/workdir \
@@ -92,10 +92,10 @@ export HOME=/home/ssm-user
 export DOCKER_IMAGE=rocker/rstudio:4.3.2
 
 mkdir $HOME/workdir
-sudo chmod 777 $HOME/workdir
+chmod 777 $HOME/workdir
 
 
-sudo docker run -d --name ${NOTEBOOK_CONTAINER_NAME} \
+docker run -d --name ${NOTEBOOK_CONTAINER_NAME} \
 --restart unless-stopped \
 --network ${NETWORK_NAME} \
 -e DISABLE_AUTH=true \
