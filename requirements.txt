@@ -1,0 +1,5 @@
+cryptography==3.4.8
+pyjwt
+requests
+boto3
+cachetools
