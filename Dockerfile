@@ -1,12 +1,11 @@
-FROM ubuntu
+FROM ubuntu:24.04
 # notebook_type is jupyter or rstudio
 ARG notebook_type=jupyter
 
-# Update the repository sources list
-RUN apt-get update
-
-# Install apache
-RUN apt-get install -y git zip apache2 apache2-dev curl pip && apt-get clean
+# Update the repository sources list and install Apache
+RUN apt-get update && \
+apt-get install -y --no-install-recommends git zip apache2 apache2-dev curl pip && apt-get clean && \
+rm -rf /var/lib/apt/lists/*
 
 # patterned after https://github.com/Sage-Bionetworks-IT/packer-rstudio/blob/master/src/playbook.yaml#L76-L91
 #       "The mod_python provided by apt in Ubuntu 22.04 intermittently fails with segmentation faults.
