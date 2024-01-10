@@ -1,10 +1,10 @@
-FROM ubuntu:24.04
+FROM ubuntu:22.04
 # notebook_type is jupyter or rstudio
 ARG notebook_type=jupyter
 
-# Update the repository sources list and install Apache
+# Update the repository sources list and install apache
 RUN apt-get update && \
-apt-get install -y --no-install-recommends git zip apache2 apache2-dev curl pip && apt-get clean && \
+apt-get install -y --no-install-recommends python3-dev git unzip apache2 apache2-dev curl pip && apt-get clean && \
 rm -rf /var/lib/apt/lists/*
 
 # patterned after https://github.com/Sage-Bionetworks-IT/packer-rstudio/blob/master/src/playbook.yaml#L76-L91
@@ -13,7 +13,6 @@ rm -rf /var/lib/apt/lists/*
 ENV MOD_PYTHON_REPO_HASH=9db86bca5106b5cf7ceca7645ec0208446c71e25
 RUN curl -o /archive.zip -L https://github.com/grisha/mod_python/archive/${MOD_PYTHON_REPO_HASH}.zip
 RUN unzip /archive.zip
-RUN ls -al /
 WORKDIR /mod_python-${MOD_PYTHON_REPO_HASH}
 RUN ./configure --with-python=/usr/bin/python3
 RUN make install
