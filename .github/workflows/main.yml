@@ -1,4 +1,4 @@
-name: Create and publish a Docker image
+name: Run tests and conditionally build container
 
 on:
   push:
