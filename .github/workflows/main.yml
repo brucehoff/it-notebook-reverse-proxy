@@ -1,0 +1,51 @@
+---
+name: Run tests and conditionally build container
+
+on:
+  push:
+    branches:
+      - '*'
+    tags:
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Static Analysis
+        uses: pre-commit/action@v3.0.0
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v3.2.0
+        with:
+          context: .
+          build-args: notebook_type=jupyter
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run unit tests
+        run: python -m pytest tests/ -s -v
+
+  docker-build-push-jupyter:
+    if: ${{ github.event_name == 'push' }}
+    needs: [tests]
+    uses: "./.github/workflows/docker_build_push.yml"
+    secrets: inherit
+    with:
+      NOTEBOOK_TYPE: jupyter
+
+  docker-build-push-rstudio:
+    if: ${{ github.event_name == 'push' }}
+    needs: [tests]
+    uses: "./.github/workflows/docker_build_push.yml"
+    secrets: inherit
+    with:
+      NOTEBOOK_TYPE: rstudio
+...
