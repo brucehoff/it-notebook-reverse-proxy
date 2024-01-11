@@ -4,8 +4,7 @@ ARG notebook_type=jupyter
 
 # Update the repository sources list and install apache
 RUN apt-get update && \
-apt-get install -y --no-install-recommends python3-dev git unzip apache2 apache2-dev curl pip && apt-get clean && \
-rm -rf /var/lib/apt/lists/*
+apt-get install -y python3-dev git unzip apache2 apache2-dev curl pip && apt-get clean
 
 # patterned after https://github.com/Sage-Bionetworks-IT/packer-rstudio/blob/master/src/playbook.yaml#L76-L91
 #       "The mod_python provided by apt in Ubuntu 22.04 intermittently fails with segmentation faults.
