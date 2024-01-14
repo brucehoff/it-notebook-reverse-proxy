@@ -37,6 +37,8 @@ RUN a2ensite proxy
 # Disable default
 RUN a2dissite 000-default
 
+COPY mpm_event.conf /etc/apache2/mods-available/mpm_event.conf
+
 COPY startup.sh /startup.sh
 
 CMD /startup.sh
