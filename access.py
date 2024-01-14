@@ -30,7 +30,7 @@ def headerparserhandler(req):
     if payload['userid'] == access_helpers.approved_user() and payload['exp'] > time.time():
       access_token = req.headers_in[AMZN_ACCESS_TOKEN]
       access_helpers.store_to_ssm(access_token)
-      req.log_error("Elapsed time: "+(datetime.now()-start_time))
+      req.log_error("Elapsed time: "+str(datetime.now()-start_time))
       return apache.OK
     else:
       # the userid claim does not match the userid tag or the JWT is expired
