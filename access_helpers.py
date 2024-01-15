@@ -39,7 +39,7 @@ def get_approved_user_from_ec2_instance_tags(tags):
 def approved_user():
   global APPROVED_USER_LOCK
   with APPROVED_USER_LOCK:
-    approved_user_thread_unsafe()
+    return approved_user_thread_unsafe()
 
 @cached(cache=TTLCache(maxsize=1, ttl=CACHE_TTL_SECONDS), info=True)
 def approved_user_thread_unsafe():
@@ -95,7 +95,7 @@ def jwt_payload(encoded_jwt, req=None, validate_time_leeway_seconds=0):
 def get_aws_elb_public_key(key_id):
   global GET_PUBLIC_KEY_LOCK
   with GET_PUBLIC_KEY_LOCK:
-    get_aws_elb_public_key_thread_unsafe(key_id)
+    return get_aws_elb_public_key_thread_unsafe(key_id)
 
 @cached(cache=TTLCache(maxsize=1, ttl=CACHE_TTL_SECONDS), info=True)
 def get_aws_elb_public_key_thread_unsafe(key_id):
