@@ -30,12 +30,12 @@ def headerparserhandler(req):
     if payload['userid'] == access_helpers.approved_user() and payload['exp'] > time.time():
       access_token = req.headers_in[AMZN_ACCESS_TOKEN]
       access_helpers.store_to_ssm(access_token)
-      kh=access_helpers.get_aws_elb_public_key.cache_info().hits
-      km=access_helpers.get_aws_elb_public_key.cache_info().misses
-      uh=access_helpers.approved_user.cache_info().hits
-      um=access_helpers.approved_user.cache_info().misses
-      sh=access_helpers.store_to_ssm.cache_info().hits
-      sm=access_helpers.store_to_ssm.cache_info().misses
+      kh=access_helpers.get_aws_elb_public_key_thread_unsafe.cache_info().hits
+      km=access_helpers.get_aws_elb_public_key_thread_unsafe.cache_info().misses
+      uh=access_helpers.approved_user_thread_unsafe.cache_info().hits
+      um=access_helpers.approved_user_thread_unsafe.cache_info().misses
+      sh=access_helpers.store_to_ssm_thread_unsafe.cache_info().hits
+      sm=access_helpers.store_to_ssm_thread_unsafe.cache_info().misses
 
       req.log_error(f"Elapsed time: {datetime.now()-start_time} cache hits: {kh},{uh},{sh}, cache misses: {km},{um},{sm}")
       return apache.OK
