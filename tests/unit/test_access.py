@@ -24,7 +24,7 @@ def test_access_missing_header():
     mock_req.headers_in = {}
     # method under test
     assert access.headerparserhandler(mock_req)==apache.DONE
-    
+
 CacheInfo = namedtuple('CacheInfo', ['hits','misses'])
 
 @patch('access_helpers.jwt_payload', Mock(return_value={"userid": USERID, "exp":time.time()+60}))
