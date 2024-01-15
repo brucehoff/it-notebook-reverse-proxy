@@ -13,14 +13,20 @@ import requests
 import base64
 import json
 import boto3
-import cachetools.func
 import os
+from cachetools import cached, TTLCache
+from threading import Lock
+
 
 SSM_PARAMETER_NAME = os.environ.get('SYNAPSE_TOKEN_AWS_SSM_PARAMETER_NAME')
 SSM_KMS_KEY_ALIAS = os.environ.get('KMS_KEY_ALIAS')
 AWS_REGION = os.environ.get('AWS_REGION')
 EC2_INSTANCE_ID = os.environ.get('EC2_INSTANCE_ID')
 CACHE_TTL_SECONDS = 3600 # one hour
+
+APPROVED_USER_LOCK=Lock()
+STORE_TO_SSM_LOCK=Lock()
+GET_PUBLIC_KEY_LOCK=Lock()
 
 def get_approved_user_from_ec2_instance_tags(tags):
   for tag in tags:
@@ -29,18 +35,28 @@ def get_approved_user_from_ec2_instance_tags(tags):
 
   return approved_caller.split(':')[1] #return userid portion of tag
 
-
-
-@cachetools.func.ttl_cache(maxsize=1, ttl=CACHE_TTL_SECONDS)
+# cachetools is not thread safe so we implement thread safety ourselves
 def approved_user():
+  global APPROVED_USER_LOCK
+  with APPROVED_USER_LOCK:
+    approved_user_thread_unsafe()
+
+@cached(cache=TTLCache(maxsize=1, ttl=CACHE_TTL_SECONDS), info=True)
+def approved_user_thread_unsafe():
   ec2 = boto3.resource('ec2',AWS_REGION)
   vm = ec2.Instance(EC2_INSTANCE_ID)
   return get_approved_user_from_ec2_instance_tags(vm.tags)
 
+# cachetools is not thread safe so we implement thread safety ourselves
+def store_to_ssm():
+  global STORE_TO_SSM_LOCK
+  with STORE_TO_SSM_LOCK:
+    store_to_ssm_thread_unsafe()
+
 # taking advantage of cache to avoid re-putting the same access token to
 # SSM Parameter Store.
-@cachetools.func.ttl_cache(maxsize=1, ttl=CACHE_TTL_SECONDS)
-def store_to_ssm(access_token):
+@cached(cache=TTLCache(maxsize=1, ttl=CACHE_TTL_SECONDS), info=True)
+def store_to_ssm_thread_unsafe(access_token):
   if not (SSM_PARAMETER_NAME):
     # just exit early if the parameter name to store in SSM is not found
     return
@@ -75,7 +91,13 @@ def jwt_payload(encoded_jwt, req=None, validate_time_leeway_seconds=0):
   # Step 3: Get the payload
   return jwt.decode(encoded_jwt, pub_key, leeway=validate_time_leeway_seconds, algorithms=['ES256'])
 
-@cachetools.func.ttl_cache(maxsize=1, ttl=CACHE_TTL_SECONDS)
-def get_aws_elb_public_key(key_id):
+# cachetools is not thread safe so we implement thread safety ourselves
+def get_aws_elb_public_key():
+  global GET_PUBLIC_KEY_LOCK
+  with GET_PUBLIC_KEY_LOCK:
+    get_aws_elb_public_key_thread_unsafe()
+
+@cached(cache=TTLCache(maxsize=1, ttl=CACHE_TTL_SECONDS), info=True)
+def get_aws_elb_public_key_thread_unsafe(key_id):
   url = f'https://public-keys.auth.elb.{AWS_REGION}.amazonaws.com/{key_id}'
   return requests.get(url).text

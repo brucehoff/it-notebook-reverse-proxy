@@ -18,7 +18,7 @@ AMZN_ACCESS_TOKEN = 'x-amzn-oidc-accesstoken'
 
 def headerparserhandler(req):
   start_time = datetime.now()
-  req.log_error("Entering handler")
+  req.log_error(f"Entering handler interpreter: {req.interpreter}")
 
   try:
     if not AMZN_OIDC_HEADER_NAME in req.headers_in:
@@ -30,7 +30,14 @@ def headerparserhandler(req):
     if payload['userid'] == access_helpers.approved_user() and payload['exp'] > time.time():
       access_token = req.headers_in[AMZN_ACCESS_TOKEN]
       access_helpers.store_to_ssm(access_token)
-      req.log_error("Elapsed time: "+str(datetime.now()-start_time))
+      kh=access_helpers.get_aws_elb_public_key.cache_info().hits
+      km=access_helpers.get_aws_elb_public_key.cache_info().misses
+      uh=access_helpers.approved_user.cache_info().hits
+      um=access_helpers.approved_user.cache_info().misses
+      sh=access_helpers.store_to_ssm.cache_info().hits
+      sm=access_helpers.store_to_ssm.cache_info().misses
+      
+      req.log_error(f"Elapsed time: {datetime.now()-start_time} cache hits: {kh},{uh},{sh}, cache misses: {km},{um},{sm}")
       return apache.OK
     else:
       # the userid claim does not match the userid tag or the JWT is expired
