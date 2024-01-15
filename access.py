@@ -36,7 +36,7 @@ def headerparserhandler(req):
       um=access_helpers.approved_user.cache_info().misses
       sh=access_helpers.store_to_ssm.cache_info().hits
       sm=access_helpers.store_to_ssm.cache_info().misses
-      
+
       req.log_error(f"Elapsed time: {datetime.now()-start_time} cache hits: {kh},{uh},{sh}, cache misses: {km},{um},{sm}")
       return apache.OK
     else:
