@@ -48,10 +48,10 @@ def approved_user_thread_unsafe():
   return get_approved_user_from_ec2_instance_tags(vm.tags)
 
 # cachetools is not thread safe so we implement thread safety ourselves
-def store_to_ssm():
+def store_to_ssm(access_token):
   global STORE_TO_SSM_LOCK
   with STORE_TO_SSM_LOCK:
-    store_to_ssm_thread_unsafe()
+    store_to_ssm_thread_unsafe(access_token)
 
 # taking advantage of cache to avoid re-putting the same access token to
 # SSM Parameter Store.
@@ -92,10 +92,10 @@ def jwt_payload(encoded_jwt, req=None, validate_time_leeway_seconds=0):
   return jwt.decode(encoded_jwt, pub_key, leeway=validate_time_leeway_seconds, algorithms=['ES256'])
 
 # cachetools is not thread safe so we implement thread safety ourselves
-def get_aws_elb_public_key():
+def get_aws_elb_public_key(key_id):
   global GET_PUBLIC_KEY_LOCK
   with GET_PUBLIC_KEY_LOCK:
-    get_aws_elb_public_key_thread_unsafe()
+    get_aws_elb_public_key_thread_unsafe(key_id)
 
 @cached(cache=TTLCache(maxsize=1, ttl=CACHE_TTL_SECONDS), info=True)
 def get_aws_elb_public_key_thread_unsafe(key_id):
