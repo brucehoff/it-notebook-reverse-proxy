@@ -11,12 +11,14 @@
 import time
 import access_helpers
 from mod_python import apache
+from datetime import datetime
 
 AMZN_OIDC_HEADER_NAME = 'x-amzn-oidc-data'
 AMZN_ACCESS_TOKEN = 'x-amzn-oidc-accesstoken'
 
 def headerparserhandler(req):
-  req.log_error("Entering handler")
+  start_time = datetime.now()
+  req.log_error(f"Entering handler interpreter: {req.interpreter}")
 
   try:
     if not AMZN_OIDC_HEADER_NAME in req.headers_in:
@@ -28,7 +30,14 @@ def headerparserhandler(req):
     if payload['userid'] == access_helpers.approved_user() and payload['exp'] > time.time():
       access_token = req.headers_in[AMZN_ACCESS_TOKEN]
       access_helpers.store_to_ssm(access_token)
-      req.log_error("Saved access token to ssm.")
+      kh=access_helpers.get_aws_elb_public_key_thread_unsafe.cache_info().hits
+      km=access_helpers.get_aws_elb_public_key_thread_unsafe.cache_info().misses
+      uh=access_helpers.approved_user_thread_unsafe.cache_info().hits
+      um=access_helpers.approved_user_thread_unsafe.cache_info().misses
+      sh=access_helpers.store_to_ssm_thread_unsafe.cache_info().hits
+      sm=access_helpers.store_to_ssm_thread_unsafe.cache_info().misses
+
+      req.log_error(f"Elapsed time: {datetime.now()-start_time} cache hits: {kh},{uh},{sh}, cache misses: {km},{um},{sm}")
       return apache.OK
     else:
       # the userid claim does not match the userid tag or the JWT is expired
