@@ -59,4 +59,5 @@ def test_access_forbidden():
 def test_access_invalid_access_token():
     mock_req = MockApacheRequest()
     # method under test
-    assert access.headerparserhandler(mock_req)==apache.HTTP_UNAUTHORIZED
+    assert access.headerparserhandler(mock_req)==apache.DONE
+    assert mock_req.status=apache.HTTP_UNAUTHORIZES
