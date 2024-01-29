@@ -33,6 +33,7 @@ CacheInfo = namedtuple('CacheInfo', ['hits','misses'])
 @patch('access_helpers.get_aws_elb_public_key_thread_unsafe.cache_info', Mock(return_value=CacheInfo(0,1)))
 @patch('access_helpers.approved_user_thread_unsafe.cache_info', Mock(return_value=CacheInfo(0,1)))
 @patch('access_helpers.store_to_ssm_thread_unsafe.cache_info', Mock(return_value=CacheInfo(0,1)))
+@patch('access_helpers.validate_access_token', Mock(return_value=None))
 def test_access_ok():
     mock_req = MockApacheRequest()
     # method under test
@@ -42,7 +43,20 @@ def test_access_ok():
 @patch('access_helpers.jwt_payload', Mock(return_value={"userid": DIFFERENT_USERID, "exp":time.time()+60}))
 @patch('access_helpers.approved_user', Mock(return_value=USERID))
 @patch('access_helpers.store_to_ssm', Mock(return_value=None))
+@patch('access_helpers.validate_access_token', Mock(return_value=None))
 def test_access_forbidden():
     mock_req = MockApacheRequest()
     # method under test
     assert access.headerparserhandler(mock_req)==apache.HTTP_FORBIDDEN
+
+@patch('access_helpers.jwt_payload', Mock(return_value={"userid": USERID, "exp":time.time()+60}))
+@patch('access_helpers.approved_user', Mock(return_value=USERID))
+@patch('access_helpers.store_to_ssm', Mock(return_value=None))
+@patch('access_helpers.get_aws_elb_public_key_thread_unsafe.cache_info', Mock(return_value=CacheInfo(0,1)))
+@patch('access_helpers.approved_user_thread_unsafe.cache_info', Mock(return_value=CacheInfo(0,1)))
+@patch('access_helpers.store_to_ssm_thread_unsafe.cache_info', Mock(return_value=CacheInfo(0,1)))
+@patch('access_helpers.validate_access_token', Mock(side_effect=Exception("invalid token")))
+def test_access_invalid_access_token():
+    mock_req = MockApacheRequest()
+    # method under test
+    assert access.headerparserhandler(mock_req)==apache.HTTP_UNAUTHORIZED

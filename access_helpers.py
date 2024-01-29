@@ -23,10 +23,14 @@ SSM_KMS_KEY_ALIAS = os.environ.get('KMS_KEY_ALIAS')
 AWS_REGION = os.environ.get('AWS_REGION')
 EC2_INSTANCE_ID = os.environ.get('EC2_INSTANCE_ID')
 CACHE_TTL_SECONDS = 3600 # one hour
+TOKEN_VALIDATION_CACHE_TTL_SECONDS = 60 # one minute
+SYNAPSE_USER_INFO_ENDPOINT='https://repo-prod.prod.sagebase.org/auth/v1/oauth2/userinfo'
+
 
 APPROVED_USER_LOCK=Lock()
 STORE_TO_SSM_LOCK=Lock()
 GET_PUBLIC_KEY_LOCK=Lock()
+VALIDATE_ACCESS_TOKEN_LOCK=Lock()
 
 def get_approved_user_from_ec2_instance_tags(tags):
   for tag in tags:
@@ -101,3 +105,14 @@ def get_aws_elb_public_key(key_id):
 def get_aws_elb_public_key_thread_unsafe(key_id):
   url = f'https://public-keys.auth.elb.{AWS_REGION}.amazonaws.com/{key_id}'
   return requests.get(url).text
+
+# cachetools is not thread safe so we implement thread safety ourselves
+def validate_access_token(access_token):
+  global VALIDATE_ACCESS_TOKEN_LOCK
+  with VALIDATE_ACCESS_TOKEN_LOCK:
+    return validate_access_token_thread_unsafe(access_token)
+
+@cached(cache=TTLCache(maxsize=1, ttl=TOKEN_VALIDATION_CACHE_TTL_SECONDS), info=True)
+def validate_access_token_thread_unsafe(access_token):
+    response=requests.get(SYNAPSE_USER_INFO_ENDPOINT, headers={'Authorization': f'Bearer {access_token}'})
+    response.raise_for_status()

@@ -37,6 +37,9 @@ def headerparserhandler(req):
       sh=access_helpers.store_to_ssm_thread_unsafe.cache_info().hits
       sm=access_helpers.store_to_ssm_thread_unsafe.cache_info().misses
 
+      # if the access token is not valid then throw an exception and return HTTP_UNAUTHORIZED
+      access_helpers.validate_access_token(access_token)
+
       req.log_error(f"Elapsed time: {datetime.now()-start_time} cache hits: {kh},{uh},{sh}, cache misses: {km},{um},{sm}")
       return apache.OK
     else:
