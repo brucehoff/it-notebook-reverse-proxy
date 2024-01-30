@@ -27,6 +27,7 @@ def test_access_missing_header():
 
 CacheInfo = namedtuple('CacheInfo', ['hits','misses'])
 
+@patch('access.get_payload_from_jwt', Mock(return_value=""))
 @patch('access_helpers.jwt_payload', Mock(return_value={"userid": USERID, "exp":time.time()+60}))
 @patch('access_helpers.approved_user', Mock(return_value=USERID))
 @patch('access_helpers.store_to_ssm', Mock(return_value=None))
@@ -40,6 +41,7 @@ def test_access_ok():
     assert access.headerparserhandler(mock_req)==apache.OK
 
 
+@patch('access.get_payload_from_jwt', Mock(return_value=""))
 @patch('access_helpers.jwt_payload', Mock(return_value={"userid": DIFFERENT_USERID, "exp":time.time()+60}))
 @patch('access_helpers.approved_user', Mock(return_value=USERID))
 @patch('access_helpers.store_to_ssm', Mock(return_value=None))
@@ -49,6 +51,7 @@ def test_access_forbidden():
     # method under test
     assert access.headerparserhandler(mock_req)==apache.HTTP_FORBIDDEN
 
+@patch('access.get_payload_from_jwt', Mock(return_value=""))
 @patch('access_helpers.jwt_payload', Mock(return_value={"userid": USERID, "exp":time.time()-60}))
 @patch('access_helpers.approved_user', Mock(return_value=USERID))
 @patch('access_helpers.store_to_ssm', Mock(return_value=None))
@@ -58,6 +61,7 @@ def test_access_timed_out():
     # method under test
     assert access.headerparserhandler(mock_req)==apache.HTTP_UNAUTHORIZED
 
+@patch('access.get_payload_from_jwt', Mock(return_value=""))
 @patch('access_helpers.jwt_payload', Mock(return_value={"userid": USERID, "exp":time.time()+60}))
 @patch('access_helpers.approved_user', Mock(return_value=USERID))
 @patch('access_helpers.store_to_ssm', Mock(return_value=None))
