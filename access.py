@@ -22,31 +22,40 @@ def headerparserhandler(req):
 
   try:
     if not AMZN_OIDC_HEADER_NAME in req.headers_in:
-        raise RuntimeError(f"Request lacks {AMZN_OIDC_HEADER_NAME} header.")
-    jwt_str = req.headers_in[AMZN_OIDC_HEADER_NAME] # proxy.conf ensures this header exists
+      raise RuntimeError(f"Request lacks {AMZN_OIDC_HEADER_NAME} header.")
+    jwt_str = req.headers_in[AMZN_OIDC_HEADER_NAME]
     payload = access_helpers.jwt_payload(jwt_str, req)
     req.log_error(f"userid: {payload['userid']}")
 
-    if payload['userid'] == access_helpers.approved_user() and payload['exp'] > time.time():
-      access_token = req.headers_in[AMZN_ACCESS_TOKEN]
-      access_helpers.store_to_ssm(access_token)
-      kh=access_helpers.get_aws_elb_public_key_thread_unsafe.cache_info().hits
-      km=access_helpers.get_aws_elb_public_key_thread_unsafe.cache_info().misses
-      uh=access_helpers.approved_user_thread_unsafe.cache_info().hits
-      um=access_helpers.approved_user_thread_unsafe.cache_info().misses
-      sh=access_helpers.store_to_ssm_thread_unsafe.cache_info().hits
-      sm=access_helpers.store_to_ssm_thread_unsafe.cache_info().misses
-
-      # if the access token is not valid then throw an exception and return HTTP_UNAUTHORIZED
-      access_helpers.validate_access_token(access_token)
-
-      req.log_error(f"Elapsed time: {datetime.now()-start_time} cache hits: {kh},{uh},{sh}, cache misses: {km},{um},{sm}")
-      return apache.OK
-    else:
-      # the userid claim does not match the userid tag or the JWT is expired
+    if payload['userid'] != access_helpers.approved_user():
+      # the userid claim does not match the userid tag
       return apache.HTTP_FORBIDDEN
+
+    if payload['exp'] < time.time():
+      # trigger reauthentication
+      return apache.HTTP_UNAUTHORIZED
+
+    access_token = req.headers_in[AMZN_ACCESS_TOKEN]
+
+    # if the access token is not valid then trigger reauthentication
+    try:
+      access_helpers.validate_access_token(access_token)
+    except:
+      return apache.HTTP_UNAUTHORIZED
+
+    access_helpers.store_to_ssm(access_token)
+
+    kh=access_helpers.get_aws_elb_public_key_thread_unsafe.cache_info().hits
+    km=access_helpers.get_aws_elb_public_key_thread_unsafe.cache_info().misses
+    uh=access_helpers.approved_user_thread_unsafe.cache_info().hits
+    um=access_helpers.approved_user_thread_unsafe.cache_info().misses
+    sh=access_helpers.store_to_ssm_thread_unsafe.cache_info().hits
+    sm=access_helpers.store_to_ssm_thread_unsafe.cache_info().misses
+
+    req.log_error(f"Elapsed time: {datetime.now()-start_time} cache hits: {kh},{uh},{sh}, cache misses: {km},{um},{sm}")
+    return apache.OK
   except Exception as e:
-    # if the JWT is missing or payload is invalid
+    # Something's gone wrong.  Try to return a useful message.
     if len(e.args)>0:
       req.content_type = "text/plain"
       req.write(f"{e.args[0]}\n")
