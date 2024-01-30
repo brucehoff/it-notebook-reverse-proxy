@@ -12,9 +12,24 @@ import time
 import access_helpers
 from mod_python import apache
 from datetime import datetime
+import base64, json
 
 AMZN_OIDC_HEADER_NAME = 'x-amzn-oidc-data'
 AMZN_ACCESS_TOKEN = 'x-amzn-oidc-accesstoken'
+
+
+# Get the Base64 decoded payload of a JWT
+# Note: This is for debugging.
+def get_payload_from_jwt(encoded_jwt):
+    base64_encoded_payload = encoded_jwt.split('.')[1]
+    payload = json.loads(base64.b64decode(f"{base64_encoded_payload}=="))
+    try:
+        expired_at_epoch = payload['exp']
+        expired_at_readable = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(expired_at_epoch))
+    except:
+        expired_at_readable=na
+    return f"exp: {expired_at_readable} payload: {payload}"
+
 
 def headerparserhandler(req):
   start_time = datetime.now()
@@ -36,6 +51,10 @@ def headerparserhandler(req):
       return apache.HTTP_UNAUTHORIZED
 
     access_token = req.headers_in[AMZN_ACCESS_TOKEN]
+
+    # log the payloads of both jwts
+    req.log_error(f"{AMZN_OIDC_HEADER_NAME}: {get_payload_from_jwt(jwt_str)}")
+    req.log_error(f"{AMZN_ACCESS_TOKEN}: {get_payload_from_jwt(access_token)}")
 
     # if the access token is not valid then trigger reauthentication
     try:
