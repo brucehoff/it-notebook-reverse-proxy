@@ -26,11 +26,17 @@ jobs:
         with:
           fetch-depth: 0  # Mandatory to use the extract version from tag action
 
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4.1.1
+        with:
+          images: ${{ env.IMAGE_PATH }}
+
       - name: Extract version from tag
         id: version
         uses: battila7/get-version-action@v2
 
-      - name: define tags
+      - name: Define tags
         id: tags
         run: |
           echo "mmp=${{ steps.version.outputs.is-semver && format('{0}.{1}.{2}',
@@ -83,12 +89,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v4.1.1
-        with:
-          images: ${{ env.IMAGE_PATH }}
 
       - name: Push Docker image
         # Note: As explained in
