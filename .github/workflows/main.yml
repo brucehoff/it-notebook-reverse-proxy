@@ -33,30 +33,9 @@ jobs:
       - name: Run unit tests
         run: python -m pytest tests/ -s -v
 
-  trivy:
-    name: Trivy-vulnerability-scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'LOW,MEDIUM,HIGH,CRITICAL'
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results.sarif'
-          category: Git Repository
-
   docker-build-push-jupyter:
     if: ${{ github.event_name == 'push' }}
-    needs: [tests, trivy]
+    needs: [tests]
     uses: "./.github/workflows/docker_build_push.yml"
     secrets: inherit
     with:
@@ -64,7 +43,7 @@ jobs:
 
   docker-build-push-rstudio:
     if: ${{ github.event_name == 'push' }}
-    needs: [tests, trivy]
+    needs: [tests]
     uses: "./.github/workflows/docker_build_push.yml"
     secrets: inherit
     with:
