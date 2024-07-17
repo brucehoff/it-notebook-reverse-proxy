@@ -18,6 +18,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+      actions: read
+      security-events: write
 
     steps:
       - name: Checkout repository
@@ -56,8 +58,7 @@ jobs:
           # 'imageid' refers to output of previous ('build') step
           image-ref: ${{ steps.build.outputs.imageid }}
           format: 'sarif'
-          # TODO change 0 back to 1
-          exit-code: 0 # Stop if HIGH or CRITICAL findings occurred
+          exit-code: 1 # Stop if HIGH or CRITICAL findings occurred
           output: 'trivy-results.sarif'
           severity: 'HIGH,CRITICAL'
 
