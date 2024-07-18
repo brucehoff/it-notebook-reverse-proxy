@@ -89,7 +89,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Define tags # TODO remove this step
         id: check-tags
         run: |
