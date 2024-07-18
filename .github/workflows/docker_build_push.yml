@@ -44,7 +44,7 @@ jobs:
              steps.meta.outputs.tags }}" >> $GITHUB_OUTPUT
           echo "mmp=${{ steps.version.outputs.is-semver && format('{0}.{1}.{2}',
              steps.version.outputs.major, steps.version.outputs.minor,
-             steps.version.outputs.patch) || 
+             steps.version.outputs.patch) ||
              steps.meta.outputs.tags }}" >> $GITHUB_OUTPUT
 
       - name: Build Docker image for scanning (but don't push yet)
