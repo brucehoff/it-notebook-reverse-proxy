@@ -89,6 +89,12 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Define tags # TODO remove this step
+        id: check-tags
+        run: |
+          echo "mmp=" ${{ steps.tags.outputs.mmp }}
+          echo "mm=" ${{ steps.tags.outputs.mm }}
 
       - name: Push Docker image
         # Note: As explained in
