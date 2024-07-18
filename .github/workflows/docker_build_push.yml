@@ -39,13 +39,13 @@ jobs:
       - name: Define tags
         id: tags
         run: |
+          echo "mm=${{ steps.version.outputs.is-semver && format('{0}.{1}',
+             steps.version.outputs.major, steps.version.outputs.minor) ||
+             steps.meta.outputs.tags }}" >> $GITHUB_OUTPUT
           echo "mmp=${{ steps.version.outputs.is-semver && format('{0}.{1}.{2}',
              steps.version.outputs.major, steps.version.outputs.minor,
              steps.version.outputs.patch) || steps.meta.outputs.tags }}"
              >> $GITHUB_OUTPUT
-          echo "mm=${{ steps.version.outputs.is-semver && format('{0}.{1}',
-             steps.version.outputs.major, steps.version.outputs.minor) ||
-             steps.meta.outputs.tags }}" >> $GITHUB_OUTPUT
 
       - name: Build Docker image for scanning (but don't push yet)
         uses: docker/build-push-action@v6.4.0
@@ -90,7 +90,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Define tags # TODO remove this step
+      - name: Show tags # TODO remove this step
         id: check-tags
         run: |
           echo "mmp=" ${{ steps.tags.outputs.mmp }}
