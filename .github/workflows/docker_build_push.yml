@@ -53,8 +53,10 @@ jobs:
           # 'imageid' refers to output of previous ('build') step
           image-ref: ${{ steps.build.outputs.imageid }}
           format: 'sarif'
-          # TODO uncomment below
-          # exit-code: 1 # Stop if HIGH or CRITICAL findings occurred
+          ignore-unfixed: true # skip vul'ns for which there is no fix
+          # only output findings for configured severities
+          limit-severities-for-sarif: true
+          exit-code: 1 # Stop if HIGH or CRITICAL findings occurred
           output: 'trivy-results.sarif'
           severity: 'HIGH,CRITICAL'
 
@@ -66,8 +68,8 @@ jobs:
         # tab=readme-ov-file#using-trivy-with-github-code-scanning
         if: ${{ success() || steps.trivy.conclusion=='failure' }}
         with:
-          sarif_file: 'trivy-results.sarif'
-          category: Git Repository
+          sarif_file: 'trivy-results-${{ inputs.NOTEBOOK_TYPE }}.sarif'
+          category: ${{ inputs.NOTEBOOK_TYPE }}:${{ steps.meta.outputs.tags }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v2.1.0

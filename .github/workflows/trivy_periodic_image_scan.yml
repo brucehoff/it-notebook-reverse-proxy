@@ -1,0 +1,48 @@
+name: Trivy Periodic Image Scan
+
+on:
+  schedule:
+    # each five minutes
+    - cron: "*/5 * * * *"
+    # TODO change to daily
+    # - cron: "0 0 * * *"
+
+jobs:
+  trivy:
+    name: ${{ matrix.notebook_type }}
+    runs-on: ubuntu-latest
+    env:
+      branch: main
+    strategy:
+      matrix:
+        notebook_type:
+          - jupyter
+          - rstudio
+
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy vulnerability scanner for any major issues
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ github.repository }}-\
+            ${{ matrix.notebook_type }}:${{ env.branch }}
+          ignore-unfixed: true # skip vul'ns for which there is no fix
+          severity: 'CRITICAL,HIGH'
+          format: 'sarif'
+          # only output findings for configured severities
+          limit-severities-for-sarif: true
+          template: '@/contrib/sarif.tpl'
+          output: trivy-results-periodic-${{ matrix.notebook_type }}.sarif
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results-${{ matrix.notebook_type }}.sarif
+          category: ${{ matrix.notebook_type }}:${{ env.branch }}
+          wait-for-processing: true
