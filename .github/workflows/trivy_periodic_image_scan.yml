@@ -1,3 +1,4 @@
+---
 name: Trivy Periodic Image Scan
 
 on:
@@ -46,3 +47,4 @@ jobs:
           sarif_file: trivy-results-periodic-${{ matrix.notebook_type }}.sarif
           category: ${{ matrix.notebook_type }}:${{ env.branch }}
           wait-for-processing: true
+...
