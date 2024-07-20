@@ -57,7 +57,7 @@ jobs:
           # only output findings for configured severities
           limit-severities-for-sarif: true
           exit-code: 1 # Stop if HIGH or CRITICAL findings occurred
-          output: 'trivy-results.sarif'
+          output: 'trivy-results-${{ inputs.NOTEBOOK_TYPE }}.sarif'
           severity: 'HIGH,CRITICAL'
 
       - name: Upload Trivy scan results to GitHub Security tab
