@@ -53,6 +53,7 @@ jobs:
           # 'imageid' refers to output of previous ('build') step
           image-ref: ${{ steps.build.outputs.imageid }}
           format: 'sarif'
+          secret-config: '.trivy-secret.yaml'
           ignore-unfixed: true # skip vul'ns for which there is no fix
           # only output findings for configured severities
           limit-severities-for-sarif: true

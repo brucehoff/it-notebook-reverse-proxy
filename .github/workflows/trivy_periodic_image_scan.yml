@@ -34,6 +34,7 @@ jobs:
           image-ref: ghcr.io/${{ github.repository }}-\
             ${{ matrix.notebook_type }}:${{ env.branch }}
           ignore-unfixed: true # skip vul'ns for which there is no fix
+          secret-config: '.trivy-secret.yaml'
           severity: 'CRITICAL,HIGH'
           format: 'sarif'
           # only output findings for configured severities
