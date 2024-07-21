@@ -34,7 +34,9 @@ jobs:
           image-ref: ghcr.io/${{ github.repository }}-\
             ${{ matrix.notebook_type }}:${{ env.branch }}
           ignore-unfixed: true # skip vul'ns for which there is no fix
-          secret-config: '.trivy-secret.yaml'
+          # list files to skip, each with a justification
+          skip-files: |
+            /etc/ssl/private/ssl-cert-snakeoil.key # secret is req'd by package
           severity: 'CRITICAL,HIGH'
           format: 'sarif'
           # only output findings for configured severities

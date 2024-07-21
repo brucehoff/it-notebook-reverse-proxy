@@ -53,7 +53,9 @@ jobs:
           # 'imageid' refers to output of previous ('build') step
           image-ref: ${{ steps.build.outputs.imageid }}
           format: 'sarif'
-          secret-config: '.trivy-secret.yaml'
+          # list files to skip, each with a justification
+          skip-files: |
+            /etc/ssl/private/ssl-cert-snakeoil.key # secret is req'd by package
           ignore-unfixed: true # skip vul'ns for which there is no fix
           # only output findings for configured severities
           limit-severities-for-sarif: true
