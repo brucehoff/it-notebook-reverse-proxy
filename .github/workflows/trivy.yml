@@ -26,6 +26,9 @@ jobs:
       security-events: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Run Trivy vulnerability scanner for any major issues
         uses: aquasecurity/trivy-action@master
         id: trivy
