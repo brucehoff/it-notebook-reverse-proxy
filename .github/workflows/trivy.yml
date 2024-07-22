@@ -1,0 +1,58 @@
+---
+name: Run Trivy on a Docker image and push results to GitHub
+
+on:
+  workflow_call:
+    inputs:
+      NOTEBOOK_TYPE:
+        required: true
+        type: string
+      IMAGE_REF:
+        required: true
+        type: string
+      EXIT_CODE:
+        required: false
+        type: integer
+
+env:
+  sarif_file_name: trivy-results-${{ inputs.NOTEBOOK_TYPE  }}.sarif
+
+jobs:
+  trivy:
+    name: Trivy-${{ inputs.NOTEBOOK_TYPE  }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Run Trivy vulnerability scanner for any major issues
+        id: trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ inputs.IMAGE_REF }}
+          ignore-unfixed: true # skip vul'ns for which there is no fix
+          # list files to skip, each with a justification
+          # TODO uncomment the following two lines
+          # skip-files: |
+          #   /etc/ssl/private/ssl-cert-snakeoil.key # secret is req'd by package
+          severity: 'CRITICAL,HIGH'
+          format: 'sarif'
+          # only output findings for configured severities
+          limit-severities-for-sarif: true
+          template: '@/contrib/sarif.tpl'
+          output: ${{ env.sarif_file_name  }}
+          exit-code: ${{ env.EXIT_CODE }}
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3.25.12
+        # This is the recommended way to upload scan results
+        # after Trivy exits with HIGH/CRITICAL findings
+        # See https://github.com/aquasecurity/trivy-action?\
+        # tab=readme-ov-file#using-trivy-with-github-code-scanning
+        if: ${{ success() || steps.trivy.conclusion=='failure' }}
+        with:
+          sarif_file: ${{ env.sarif_file_name  }}
+          category: ${{ inputs.NOTEBOOK_TYPE }}
+          wait-for-processing: true
+...
