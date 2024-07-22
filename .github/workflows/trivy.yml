@@ -12,7 +12,7 @@ on:
         type: string
       EXIT_CODE:
         required: false
-        type: integer
+        type: number
 
 env:
   sarif_file_name: trivy-results-${{ inputs.NOTEBOOK_TYPE  }}.sarif
@@ -27,15 +27,15 @@ jobs:
 
     steps:
       - name: Run Trivy vulnerability scanner for any major issues
-        id: trivy
         uses: aquasecurity/trivy-action@master
+        id: trivy
         with:
           image-ref: ${{ inputs.IMAGE_REF }}
           ignore-unfixed: true # skip vul'ns for which there is no fix
           # list files to skip, each with a justification
           # TODO uncomment the following two lines
           # skip-files: |
-          #   /etc/ssl/private/ssl-cert-snakeoil.key # secret is req'd by package
+          #   /etc/ssl/private/ssl-cert-snakeoil.key # secret is req'd by pkg
           severity: 'CRITICAL,HIGH'
           format: 'sarif'
           # only output findings for configured severities

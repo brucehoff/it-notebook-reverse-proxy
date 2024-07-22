@@ -43,10 +43,9 @@ jobs:
           load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          
+
       - name: Run Trivy vulnerability scanner
         uses: "./.github/workflows/trivy.yml"
-        secrets: inherit
         with:
           NOTEBOOK_TYPE: ${{ matrix.notebook_type }}
           IMAGE_REF: ${{ steps.build.outputs.imageid }}
@@ -72,5 +71,4 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
 ...
