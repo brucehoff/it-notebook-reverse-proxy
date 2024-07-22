@@ -45,7 +45,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Run Trivy vulnerability scanner
-        uses: ".github/workflows/trivy.yml"
+        uses: "./.github/workflows/trivy.yml"
         with:
           NOTEBOOK_TYPE: ${{ matrix.notebook_type }}
           IMAGE_REF: ${{ steps.build.outputs.imageid }}

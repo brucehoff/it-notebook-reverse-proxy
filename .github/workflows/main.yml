@@ -36,7 +36,7 @@ jobs:
   docker-build-push-jupyter:
     if: ${{ github.event_name == 'push' }}
     needs: [tests]
-    uses: ".github/workflows/docker_build_push.yml"
+    uses: "./.github/workflows/docker_build_push.yml"
     secrets: inherit
     with:
       NOTEBOOK_TYPE: jupyter
@@ -44,7 +44,7 @@ jobs:
   docker-build-push-rstudio:
     if: ${{ github.event_name == 'push' }}
     needs: [tests]
-    uses: ".github/workflows/docker_build_push.yml"
+    uses: "./.github/workflows/docker_build_push.yml"
     secrets: inherit
     with:
       NOTEBOOK_TYPE: rstudio
