@@ -22,10 +22,11 @@ jobs:
         uses: pre-commit/action@v3.0.0
 
       - name: Build Docker Image
-        uses: docker/build-push-action@v3.2.0
+        uses: docker/build-push-action@v6.4.0
         with:
           context: .
           build-args: notebook_type=jupyter
+          push: false
 
       - name: Install dependencies
         run: pip install -r requirements.txt -r requirements-dev.txt
