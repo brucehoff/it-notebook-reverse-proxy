@@ -10,7 +10,8 @@ on:
 
 env:
   IMAGE_PATH: ghcr.io/${{ github.repository }}-${{ inputs.NOTEBOOK_TYPE }}
-  TAR_PREFIX: image
+  TARFILE_ARTIFACT: image_tarfile
+  TARFILE_PATH: /tmp/image.tar
 
 jobs:
   build:
@@ -41,9 +42,15 @@ jobs:
           build-args: notebook_type=${{ inputs.NOTEBOOK_TYPE }}
           push: false
           load: true
-          outputs: type=tar,dest=/tmp/${{ env.TAR_PREFIX }}.tar
+          outputs: type=tar,dest=${{ env.TARFILE_PATH }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Upload tarball for use by Trivy job
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.TARFILE_ARTIFACT }}
+          path: ${{ env.TARFILE_PATH }}
 
     outputs:
       tags: ${{ steps.meta.outputs.tags }}
@@ -55,7 +62,7 @@ jobs:
     with:
       NOTEBOOK_TYPE: ${{ inputs.NOTEBOOK_TYPE }}
       SOURCE_TYPE: tar
-      SOURCE_REF: $TAR_PREFIX
+      SOURCE_REF: $TARFILE_ARTIFACT
       EXIT_CODE: 1
 
   push-image:
@@ -74,13 +81,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download tar file
+        id: tar-download
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.TAR_PREFIX }}
-          path: /tmp
+          name: ${{ env.TARFILE_ARTIFACT }}
 
       - name: Load image from tar
-        run: docker load --input /tmp/${{ env.TAR_PREFIX }}.tar
+        run: docker load --input ${{ steps.tar-download.outputs.download-path }}
 
       - name: Push Docker image
         # Per https://docs.docker.com/build/ci/github-actions/test-before-push,

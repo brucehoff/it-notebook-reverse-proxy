@@ -33,11 +33,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download tar file
+        id: tar-download
         uses: actions/download-artifact@v4
         if: ${{ inputs.SOURCE_TYPE == 'tar' }}
         with:
           name: ${{ inputs.SOURCE_REF }}
-          path: /tmp
 
       - name: Run Trivy vulnerability scanner for any major issues
         uses: aquasecurity/trivy-action@0.24.0
@@ -46,7 +46,7 @@ jobs:
           image-ref: ${{ inputs.SOURCE_TYPE == 'image' }}
             && ${{ inputs.SOURCE_REF }}
           input: ${{ inputs.SOURCE_TYPE == 'tar' }}
-            && ${{ inputs.SOURCE_REF }}
+            && ${{ steps.tar-download.outputs.download-path }}
           ignore-unfixed: true # skip vul'ns for which there is no fix
           # list files to skip, each with a justification
           # TODO uncomment the following two lines
