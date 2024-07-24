@@ -7,7 +7,10 @@ on:
       NOTEBOOK_TYPE:
         required: true
         type: string
-      IMAGE_REF:
+      SOURCE_TYPE:
+        required: true
+        type: string
+      SOURCE_REF:
         required: true
         type: string
       EXIT_CODE:
@@ -29,15 +32,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download tar file
+        uses: actions/download-artifact@v4
+        if: ${{ inputs.SOURCE_TYPE == 'tar' }}
+        with:
+          name: ${{ inputs.SOURCE_REF }}
+          path: /tmp
+
       - name: Run Trivy vulnerability scanner for any major issues
         uses: aquasecurity/trivy-action@0.24.0
         id: trivy
         with:
-          image-ref: ${{ inputs.IMAGE_REF }}
+          image-ref: ${{ inputs.SOURCE_TYPE == 'image' }}
+            && ${{ inputs.SOURCE_REF }}
+          input: ${{ inputs.SOURCE_TYPE == 'tar' }}
+            && ${{ inputs.SOURCE_REF }}
           ignore-unfixed: true # skip vul'ns for which there is no fix
           # list files to skip, each with a justification
-          skip-files: |
-            /etc/ssl/private/ssl-cert-snakeoil.key # secret is req'd by pkg
+          # TODO uncomment the following two lines
+          # skip-files: |
+          #   /etc/ssl/private/ssl-cert-snakeoil.key # secret is req'd by pkg
           severity: 'CRITICAL,HIGH'
           format: 'sarif'
           # only output findings for configured severities

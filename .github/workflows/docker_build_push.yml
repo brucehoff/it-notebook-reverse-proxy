@@ -10,6 +10,7 @@ on:
 
 env:
   IMAGE_PATH: ghcr.io/${{ github.repository }}-${{ inputs.NOTEBOOK_TYPE }}
+  TAR_PREFIX: image
 
 jobs:
   build:
@@ -32,19 +33,19 @@ jobs:
             type=semver,pattern={{version}} # major.minor.patch
             type=semver,pattern={{major}}.{{minor}}
 
-      - name: Build Docker image for scanning, but don't push yet
+      - name: Build Docker image for scanning, but don't push to GHCR yet
         uses: docker/build-push-action@v6.4.0
         id: build
         with:
           context: .
           build-args: notebook_type=${{ inputs.NOTEBOOK_TYPE }}
-          push: false
+          push: true
           load: true
+          outputs: type=docker,dest=/tmp/${{ env.TAR_PREFIX }}.tar
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
     outputs:
-      imageid: ${{ steps.build.outputs.imageid }}
       tags: ${{ steps.meta.outputs.tags }}
       labels: ${{ steps.meta.outputs.labels }}
 
@@ -53,7 +54,8 @@ jobs:
     uses: "./.github/workflows/trivy.yml"
     with:
       NOTEBOOK_TYPE: ${{ inputs.NOTEBOOK_TYPE }}
-      IMAGE_REF: ${{ needs.build.outputs.imageid }}
+      SOURCE_TYPE: 'tar'
+      SOURCE_REF: ${{ env.TAR_PREFIX }}
       EXIT_CODE: 1
 
   push-image:
@@ -70,6 +72,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download tar file
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.TAR_PREFIX }}
+          path: /tmp
+
+      - name: Load image from tar
+        run: docker load --input /tmp/${{ env.TAR_PREFIX }}.tar
 
       - name: Push Docker image
         # Per https://docs.docker.com/build/ci/github-actions/test-before-push,
