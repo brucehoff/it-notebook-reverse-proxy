@@ -48,7 +48,7 @@ jobs:
         id: trivy
         with:
           image-ref: ${{ inputs.SOURCE_TYPE == 'image' &&
-            inputs.SOURCE_REF || Null}}
+            inputs.SOURCE_REF || null}}
           input: ${{ steps.tar-download.outputs.download-path }}
             /${{ inputs.SOURCE_REF }}
           ignore-unfixed: true # skip vul'ns for which there is no fix
