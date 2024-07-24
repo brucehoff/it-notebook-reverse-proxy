@@ -41,7 +41,7 @@ jobs:
           build-args: notebook_type=${{ inputs.NOTEBOOK_TYPE }}
           push: true
           load: true
-          outputs: type=docker,dest=/tmp/${{ env.TAR_PREFIX }}.tar
+          outputs: type=tar,dest=/tmp/${{ env.TAR_PREFIX }}.tar
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
