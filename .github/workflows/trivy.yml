@@ -1,4 +1,11 @@
 ---
+#
+# This workflow runs Trivy on a Docker image
+# It can pull the image from a container registry
+# or download a tar file.  The latter is used
+# to check a container image prior to publishing
+# to the registry.
+
 name: Run Trivy on a Docker image and push results to GitHub
 
 on:
