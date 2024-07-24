@@ -12,11 +12,10 @@ env:
   IMAGE_PATH: ghcr.io/${{ github.repository }}-${{ inputs.NOTEBOOK_TYPE }}
 
 jobs:
-  build-scan-and-push-image:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
 
     steps:
       - name: Checkout repository
@@ -44,21 +43,33 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Run Trivy vulnerability scanner
-        uses: "./.github/workflows/trivy.yml"
-        with:
-          NOTEBOOK_TYPE: ${{ matrix.notebook_type }}
-          IMAGE_REF: ${{ steps.build.outputs.imageid }}
-          EXIT_CODE: 1
+    outputs:
+      imageid: ${{ steps.build.outputs.imageid }}
+      tags: ${{ steps.meta.outputs.tags }}
+      labels: ${{ steps.meta.outputs.labels }}
 
+  trivy-scan:
+    needs: build
+    uses: "./.github/workflows/trivy.yml"
+    with:
+      NOTEBOOK_TYPE: ${{ inputs.NOTEBOOK_TYPE }}
+      IMAGE_REF: ${{ neeeds.build.outputs.imageid }}
+      EXIT_CODE: 1
 
+  push-image:
+    needs: trivy-scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
 
       - name: Push Docker image
         # Per https://docs.docker.com/build/ci/github-actions/test-before-push,
@@ -69,6 +80,6 @@ jobs:
           context: .
           build-args: notebook_type=${{ inputs.NOTEBOOK_TYPE }}
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ needs.build.outputs.tags }}
+          labels: ${{ needs.build.outputs.labels }}
 ...
