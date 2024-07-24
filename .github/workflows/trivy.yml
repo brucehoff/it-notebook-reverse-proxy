@@ -39,6 +39,9 @@ jobs:
         with:
           name: ${{ inputs.SOURCE_REF }}
 
+      - name: inspect tar download
+        run: ls -al ${{ steps.tar-download.outputs.download-path }}
+
       - name: Run Trivy vulnerability scanner for any major issues
         uses: aquasecurity/trivy-action@0.24.0
         id: trivy
@@ -54,7 +57,6 @@ jobs:
           format: 'sarif'
           # only output findings for configured severities
           limit-severities-for-sarif: true
-          template: '@/contrib/sarif.tpl'
           output: ${{ env.sarif_file_name  }}
           exit-code: ${{ env.EXIT_CODE }}
 
