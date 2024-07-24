@@ -47,7 +47,8 @@ jobs:
         uses: aquasecurity/trivy-action@0.24.0
         id: trivy
         with:
-          image-ref: ${{ inputs.SOURCE_TYPE == 'image' && inputs.SOURCE_REF }}
+          image-ref: ${{ inputs.SOURCE_TYPE == 'image' &&
+            inputs.SOURCE_REF || Null}}
           input: ${{ steps.tar-download.outputs.download-path }}
             /${{ inputs.SOURCE_REF }}
           ignore-unfixed: true # skip vul'ns for which there is no fix
