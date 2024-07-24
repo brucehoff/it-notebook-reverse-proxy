@@ -55,6 +55,7 @@ jobs:
     outputs:
       tags: ${{ steps.meta.outputs.tags }}
       labels: ${{ steps.meta.outputs.labels }}
+      tarfile_artifact: ${{ env.TARFILE_ARTIFACT }}
 
   trivy-scan:
     needs: build
@@ -62,7 +63,7 @@ jobs:
     with:
       NOTEBOOK_TYPE: ${{ inputs.NOTEBOOK_TYPE }}
       SOURCE_TYPE: tar
-      SOURCE_REF: ${{ env.TARFILE_ARTIFACT }}
+      SOURCE_REF: ${{ needs.build.outputs.tarfile_artifact }}
       EXIT_CODE: 1
 
   push-image:
