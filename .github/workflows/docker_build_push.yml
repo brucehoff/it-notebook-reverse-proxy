@@ -67,7 +67,7 @@ jobs:
       EXIT_CODE: 1
 
   push-image:
-    needs: trivy-scan
+    needs: [build, trivy-scan]
     runs-on: ubuntu-latest
     permissions:
       contents: read
