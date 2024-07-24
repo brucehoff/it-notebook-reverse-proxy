@@ -20,6 +20,6 @@ jobs:
     with:
       NOTEBOOK_TYPE: ${{ matrix.notebook_type }}
       SOURCE_TYPE: image
-      IMAGE_NAME: ghcr.io/${{ github.repository }}-\
-            ${{ matrix.notebook_type }}:main
+      IMAGE_NAME: ghcr.io/${{ github.repository
+        }}-${{ matrix.notebook_type }}:main
 ...
