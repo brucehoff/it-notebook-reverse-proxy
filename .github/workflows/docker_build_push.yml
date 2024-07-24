@@ -81,10 +81,6 @@ jobs:
           name: ${{ env.TARFILE_NAME }}
           path: /tmp
 
-      - name: list images
-        # TODO remove this debug step
-        run: docker images
-
       - name: Load Docker image from tar
         run: cat
           ${{ steps.tar-download.outputs.download-path}}/${{ env.TARFILE_NAME}}
@@ -97,22 +93,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Checkout repository
-        # TODO This shouldn't be necessary since we're just pushing the image
-        uses: actions/checkout@v4
-
-      - name: list images again
-        # TODO remove this debug step
-        run: docker images
-
       - name: Push Docker image
-        # Since the image is already built, this step
-        # will simply push the image
-        uses: docker/build-push-action@v6.4.0
-        with:
-          context: .
-          build-args: notebook_type=${{ inputs.NOTEBOOK_TYPE }}
-          push: true
-          tags: ${{ needs.build.outputs.tags }}
-          labels: ${{ needs.build.outputs.labels }}
+        run: docker push ${{ needs.build.outputs.tags }}
 ...
