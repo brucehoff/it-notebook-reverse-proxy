@@ -43,12 +43,7 @@ jobs:
           name: ${{ inputs.TARFILE_NAME }}
           path: /tmp
 
-      - name: inspect tar download
-        if: ${{ inputs.SOURCE_TYPE == 'tar' }}
-        run: ls -al ${{ steps.tar-download.outputs.download-path
-          }}/${{ inputs.TARFILE_NAME }}
-
-      - name: load docker image
+      - name: load docker image from tar file
         if: ${{ inputs.SOURCE_TYPE == 'tar' }}
         run: cat ${{ steps.tar-download.outputs.download-path
           }}/${{ inputs.TARFILE_NAME
