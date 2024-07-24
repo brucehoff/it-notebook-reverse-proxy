@@ -93,6 +93,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Checkout repository
+        # TODO This shouldn't be necessary since we're just pushing the image
+        uses: actions/checkout@v4
+
       - name: Push Docker image
         # Since the image is already built, this step
         # will simply push the image
