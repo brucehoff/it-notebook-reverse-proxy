@@ -53,7 +53,7 @@ jobs:
     uses: "./.github/workflows/trivy.yml"
     with:
       NOTEBOOK_TYPE: ${{ inputs.NOTEBOOK_TYPE }}
-      IMAGE_REF: ${{ neeeds.build.outputs.imageid }}
+      IMAGE_REF: ${{ needs.build.outputs.imageid }}
       EXIT_CODE: 1
 
   push-image:
