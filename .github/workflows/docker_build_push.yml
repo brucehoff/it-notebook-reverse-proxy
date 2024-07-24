@@ -82,8 +82,8 @@ jobs:
           path: /tmp
 
       - name: Load Docker image from tar
-        run: cat \
-          ${{ steps.tar-download.outputs.download-path}}/${{ env.TARFILE_NAME}}\
+        run: cat
+          ${{ steps.tar-download.outputs.download-path}}/${{ env.TARFILE_NAME}}
           | docker import - ${{ needs.build.outputs.tags }}
 
       - name: Login to GitHub Container Registry
