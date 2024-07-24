@@ -47,10 +47,9 @@ jobs:
         uses: aquasecurity/trivy-action@0.24.0
         id: trivy
         with:
-          image-ref: ${{ inputs.SOURCE_TYPE == 'image' &&
-            inputs.SOURCE_REF || null}}
-          input: ${{ steps.tar-download.outputs.download-path }}
-            /${{ inputs.SOURCE_REF }}
+          # TODO: Fix to support periodic scans
+          input: ${{ steps.tar-download.outputs.download-path
+            }}/${{ inputs.SOURCE_REF }}
           ignore-unfixed: true # skip vul'ns for which there is no fix
           # list files to skip, each with a justification
           # TODO uncomment the following two lines
