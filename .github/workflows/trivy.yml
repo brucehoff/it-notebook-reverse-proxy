@@ -41,6 +41,7 @@ jobs:
         if: ${{ inputs.SOURCE_TYPE == 'tar' }}
         with:
           name: ${{ inputs.TARFILE_NAME }}
+          path: /tmp
 
       - name: inspect tar download
         if: ${{ inputs.SOURCE_TYPE == 'tar' }}
@@ -49,7 +50,7 @@ jobs:
 
       - name: load docker image
         if: ${{ inputs.SOURCE_TYPE == 'tar' }}
-        run: docker import --input ${{ steps.tar-download.outputs.download-path
+        run: docker load --input ${{ steps.tar-download.outputs.download-path
           }}/${{ inputs.TARFILE_NAME }}
 
       - name: Run Trivy vulnerability scanner for any major issues
