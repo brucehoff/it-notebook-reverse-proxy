@@ -55,7 +55,7 @@ jobs:
     with:
       NOTEBOOK_TYPE: ${{ inputs.NOTEBOOK_TYPE }}
       SOURCE_TYPE: tar
-      SOURCE_REF: ${{ env.TAR_PREFIX }}
+      SOURCE_REF: $TAR_PREFIX
       EXIT_CODE: 1
 
   push-image:
