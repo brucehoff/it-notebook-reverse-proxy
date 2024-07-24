@@ -39,7 +39,7 @@ jobs:
         with:
           context: .
           build-args: notebook_type=${{ inputs.NOTEBOOK_TYPE }}
-          push: true
+          push: false
           load: true
           outputs: type=tar,dest=/tmp/${{ env.TAR_PREFIX }}.tar
           tags: ${{ steps.meta.outputs.tags }}
