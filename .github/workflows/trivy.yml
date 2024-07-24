@@ -7,10 +7,13 @@ on:
       NOTEBOOK_TYPE:
         required: true
         type: string
-      SOURCE_TYPE:
+      SOURCE_TYPE: # 'tar' or 'image'
         required: true
         type: string
-      SOURCE_REF:
+      TARFILE_NAME: # only used if SOURCE_TYPE=='tar'
+        required: false
+        type: string
+      IMAGE_NAME:
         required: true
         type: string
       EXIT_CODE:
@@ -37,19 +40,23 @@ jobs:
         uses: actions/download-artifact@v4
         if: ${{ inputs.SOURCE_TYPE == 'tar' }}
         with:
-          name: ${{ inputs.SOURCE_REF }}
+          name: ${{ inputs.TARFILE_NAME }}
 
       - name: inspect tar download
+        if: ${{ inputs.SOURCE_TYPE == 'tar' }}
         run: ls -al ${{ steps.tar-download.outputs.download-path
-          }}/${{ inputs.SOURCE_REF }}
+          }}/${{ inputs.TARFILE_NAME }}
+
+      - name: load docker image
+        if: ${{ inputs.SOURCE_TYPE == 'tar' }}
+        run: docker load --input ${{ steps.tar-download.outputs.download-path
+          }}/${{ inputs.TARFILE_NAME }}
 
       - name: Run Trivy vulnerability scanner for any major issues
         uses: aquasecurity/trivy-action@0.24.0
         id: trivy
         with:
-          # TODO: Fix to support periodic scans
-          input: ${{ steps.tar-download.outputs.download-path
-            }}/${{ inputs.SOURCE_REF }}
+          image-ref: ${{ inputs.IMAGE_NAME }}
           ignore-unfixed: true # skip vul'ns for which there is no fix
           # list files to skip, each with a justification
           # TODO uncomment the following two lines

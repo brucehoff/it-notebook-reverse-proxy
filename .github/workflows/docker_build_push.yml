@@ -10,7 +10,6 @@ on:
 
 env:
   IMAGE_PATH: ghcr.io/${{ github.repository }}-${{ inputs.NOTEBOOK_TYPE }}
-  TARFILE_ARTIFACT: ${{ inputs.NOTEBOOK_TYPE }}-image-tarfile
   TARFILE_NAME: ${{ inputs.NOTEBOOK_TYPE }}-image.tar
 
 jobs:
@@ -63,7 +62,8 @@ jobs:
     with:
       NOTEBOOK_TYPE: ${{ inputs.NOTEBOOK_TYPE }}
       SOURCE_TYPE: tar
-      SOURCE_REF: ${{ needs.build.outputs.tarfile_artifact }}
+      IMAGE_NAME: ${{ needs.build.outputs.tags }}
+      TARFILE_NAME: ${{ needs.build.outputs.tarfile_artifact }}
       EXIT_CODE: 1
 
   push-image:
