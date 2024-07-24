@@ -40,8 +40,8 @@ jobs:
           name: ${{ inputs.SOURCE_REF }}
 
       - name: inspect tar download
-        run: ls -al ${{ steps.tar-download.outputs.download-path }}
-          /${{ inputs.SOURCE_REF }}
+        run: ls -al ${{ steps.tar-download.outputs.download-path
+          }}/${{ inputs.SOURCE_REF }}
 
       - name: Run Trivy vulnerability scanner for any major issues
         uses: aquasecurity/trivy-action@0.24.0
