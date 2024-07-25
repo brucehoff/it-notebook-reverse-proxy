@@ -1,4 +1,10 @@
 ---
+#
+# This workflow scans the published container images
+# for new vulnerabilities daily, publishing findings.
+# Findings will be associated with the 'main' branch
+# of the repo' in the GitHub Security tab.
+#
 name: Trivy Periodic Image Scan
 
 on:

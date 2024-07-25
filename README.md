@@ -107,16 +107,16 @@ ${DOCKER_IMAGE}
 
 ## Security
 
-Trivy is run on each built container, to scan for known vulnerabilities.
-Containers will not be published to `ghcr.io` if any CRITICAL or HIGH
+Trivy is run on each built container and they will not be published 
+to `ghcr.io` if any CRITICAL or HIGH
 vulnerabilites are found.  Trivy is also run daily to check for new
 vulnerabilities in existing images.  So periodic review of new findings
 is needed:  Go to the Security tab in GitHub, select Code Scanning at left,
 and then select Branch > Main to check for new findings.  To suppress
-findings which are not "true positives", either:
+false positives, either:
 
 - Enter the CVE in `.trivyignore`, or
 
 - Enter the file to skip while scanning in the `trivy.yml` workflow.
 
-In either case, add a comment to explain why the finding is suppressd.
+In either case, add a comment justifying why the finding is suppressd.

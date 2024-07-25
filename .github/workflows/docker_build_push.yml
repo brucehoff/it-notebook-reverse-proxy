@@ -1,4 +1,9 @@
 ---
+#
+# This workflow builds a Docker image and passes it to Trivy for
+# vulnerability scanning, only publishing it to ghrc.io if
+# the scan passes.
+#
 name: Build and publish a Docker image
 
 on:
@@ -33,14 +38,13 @@ jobs:
             type=semver,pattern={{version}} # major.minor.patch
             type=semver,pattern={{major}}.{{minor}}
 
-      - name: Build Docker image for scanning, but don't push to GHCR yet
+      - name: Build Docker image for scanning, but don't push to ghcr.io yet
         uses: docker/build-push-action@v6.4.0
         id: build
         with:
           context: .
           build-args: notebook_type=${{ inputs.NOTEBOOK_TYPE }}
           push: false
-          load: true
           outputs: type=tar,dest=${{ env.TARFILE_NAME }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -53,7 +57,6 @@ jobs:
 
     outputs:
       tags: ${{ steps.meta.outputs.tags }}
-      labels: ${{ steps.meta.outputs.labels }}
       tarfile_artifact: ${{ env.TARFILE_NAME }}
 
   trivy-scan:

@@ -61,17 +61,18 @@ jobs:
         id: trivy
         with:
           image-ref: ${{ inputs.IMAGE_NAME }}
-          # TODO toggle
-          ignore-unfixed: false # skip vul'ns for which there is no fix
+          ignore-unfixed: true # skip vul'ns for which there is no fix
           # list files to skip, each with a justification
-          skip-files: |
-            /etc/ssl/private/ssl-cert-snakeoil.key # secret is req'd by pkg
+          # TODO uncomment
+          #skip-files: |
+          #  /etc/ssl/private/ssl-cert-snakeoil.key
+          # ssl-cert-snakeoil.key is req'd by the ssl package.
           severity: 'CRITICAL,HIGH'
           format: 'sarif'
           # only output findings for configured severities
           limit-severities-for-sarif: true
           output: ${{ env.sarif_file_name  }}
-          exit-code: ${{ env.EXIT_CODE }}
+          exit-code: ${{ inputs.EXIT_CODE }}
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3.25.12
