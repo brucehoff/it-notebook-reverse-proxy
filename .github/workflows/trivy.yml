@@ -63,9 +63,8 @@ jobs:
           image-ref: ${{ inputs.IMAGE_NAME }}
           ignore-unfixed: true # skip vul'ns for which there is no fix
           # list files to skip, each with a justification
-          # TODO uncomment
-          #skip-files: |
-          #  /etc/ssl/private/ssl-cert-snakeoil.key
+          skip-files: |
+            /etc/ssl/private/ssl-cert-snakeoil.key
           # ssl-cert-snakeoil.key is req'd by the ssl package.
           severity: 'CRITICAL,HIGH'
           format: 'sarif'
