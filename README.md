@@ -107,7 +107,7 @@ ${DOCKER_IMAGE}
 
 ## Security
 
-Trivy is run on each built container and they will not be published 
+Trivy is run on each built container and they will not be published
 to `ghcr.io` if any CRITICAL or HIGH
 vulnerabilites are found.  Trivy is also run daily to check for new
 vulnerabilities in existing images.  So periodic review of new findings
