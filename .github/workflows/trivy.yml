@@ -23,9 +23,10 @@ on:
       IMAGE_NAME:
         required: true
         type: string
-      EXIT_CODE:
+      EXIT_CODE: # return code for failed scan. 0 means OK
         required: false
         type: number
+        default: 0
 
 env:
   sarif_file_name: trivy-results-${{ inputs.NOTEBOOK_TYPE  }}.sarif
