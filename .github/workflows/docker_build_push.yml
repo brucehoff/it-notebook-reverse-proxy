@@ -55,7 +55,7 @@ jobs:
           path: ${{ env.TARFILE_NAME }}
 
     outputs:
-      tags: ${{ steps.meta.outputs.tags }}
+      tags: ${{ fromJSON(steps.meta.outputs.json).tags }}
       tarfile_artifact: ${{ env.TARFILE_NAME }}
 
   trivy-scan:
