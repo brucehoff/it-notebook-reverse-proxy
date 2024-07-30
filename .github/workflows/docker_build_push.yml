@@ -64,7 +64,7 @@ jobs:
     with:
       NOTEBOOK_TYPE: ${{ inputs.NOTEBOOK_TYPE }}
       SOURCE_TYPE: tar
-      IMAGE_NAME: ${{ env.IMAGE_PATH }}
+      IMAGE_NAME: ${{ IMAGE_PATH }}
       TARFILE_NAME: ${{ needs.build.outputs.tarfile_artifact }}
       EXIT_CODE: 1
 
