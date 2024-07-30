@@ -48,9 +48,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: examine JSON # TODO remove
-        run: echo ${{ steps.meta.outputs.json }}
-
       - name: Upload tarball for use by Trivy job
         uses: actions/upload-artifact@v4
         with:
