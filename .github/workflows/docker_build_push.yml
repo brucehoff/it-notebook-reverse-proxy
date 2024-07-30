@@ -40,7 +40,6 @@ jobs:
 
       - name: Build Docker image for scanning, but don't push to ghcr.io yet
         uses: docker/build-push-action@v6.4.0
-        id: build
         with:
           context: .
           build-args: notebook_type=${{ inputs.NOTEBOOK_TYPE }}
