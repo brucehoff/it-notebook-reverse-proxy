@@ -104,6 +104,12 @@ ${DOCKER_IMAGE}
 
 ```
 
+## Versioning
+
+Semantic versioning is used and containers are tagged based on GitHub tags: If a tag,
+v1.2.3 is pushed to GitHub then a container image is built with tags `1.2.3` as well as `1.2`.
+Thus the `major.minor` tag is overwritten when the repo' is patched.
+
 
 ## Security
 
@@ -119,4 +125,4 @@ false positives, either:
 
 - Enter the file to skip while scanning in the `trivy.yml` workflow.
 
-In either case, add a comment justifying why the finding is suppressd.
+In either case, add a comment justifying why the finding is suppressed.
