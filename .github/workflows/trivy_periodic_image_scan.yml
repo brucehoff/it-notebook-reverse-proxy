@@ -13,7 +13,7 @@ on:
     - cron: "0 0 * * *"
 
 jobs:
-  lower-case:
+  to-lower-case:
     runs-on: ubuntu-latest
     name: lower-case
     steps:
@@ -23,7 +23,7 @@ jobs:
         with:
           string: ${{ github.repository }}
     outputs:
-      lowercase: ${{ steps.repo.outputs.lowercase }}
+      lowercase-repo-name: ${{ steps.repo.outputs.lowercase }}
 
   trivy-matrix:
     name: trivy-${{ matrix.notebook_type }}
@@ -37,6 +37,8 @@ jobs:
     with:
       NOTEBOOK_TYPE: ${{ matrix.notebook_type }}
       SOURCE_TYPE: image
-      IMAGE_NAME: ghcr.io/${{ needs.lower-case.outputs.lowercase
+      # While GitHub repo's can be mixed (upper and lower) case,
+      # Docker images can only be lower case
+      IMAGE_NAME: ghcr.io/${{ needs.to-lower-case.outputs.lowercase-repo-name
             }}-${{ matrix.notebook_type }}:main
 ...
