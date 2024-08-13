@@ -13,27 +13,32 @@ on:
     - cron: "0 0 * * *"
 
 jobs:
-  trivy-matrix:
-    name: ${{ matrix.notebook_type }}
+  to-lower-case:
     runs-on: ubuntu-latest
+    name: lower-case
+    steps:
+      - name: Ensure repo' name is lower case
+        id: repo
+        uses: vishalmamidi/lowercase-action@v1
+        with:
+          string: ${{ github.repository }}
+    outputs:
+      lowercase-repo-name: ${{ steps.repo.outputs.lowercase }}
+
+  trivy-matrix:
+    name: trivy-${{ matrix.notebook_type }}
+    needs: lower-case
     strategy:
       matrix:
         notebook_type:
           - jupyter
           - rstudio
-
-    steps:
-      - name: Ensure image name is lower case
-        id: image_name
-        uses: vishalmamidi/lowercase-action@v1
-        with:
-          string: ghcr.io/${{ github.repository
+    uses: "./.github/workflows/trivy.yml"
+    with:
+      NOTEBOOK_TYPE: ${{ matrix.notebook_type }}
+      SOURCE_TYPE: image
+      # While GitHub repo's can be mixed (upper and lower) case,
+      # Docker images can only be lower case
+      IMAGE_NAME: ghcr.io/${{ needs.to-lower-case.outputs.lowercase-repo-name
             }}-${{ matrix.notebook_type }}:main
-
-      - name: Run Trivy
-        uses: "./.github/workflows/trivy.yml"
-        with:
-          NOTEBOOK_TYPE: ${{ matrix.notebook_type }}
-          SOURCE_TYPE: image
-          IMAGE_NAME: ${{ steps.image_name.outputs.lowercase }}
 ...
