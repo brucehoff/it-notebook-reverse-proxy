@@ -15,7 +15,7 @@ on:
 jobs:
   to-lower-case:
     runs-on: ubuntu-latest
-    name: lower-case
+    name: to-lower-case
     steps:
       - name: Ensure repo' name is lower case
         id: repo
@@ -27,7 +27,7 @@ jobs:
 
   trivy-matrix:
     name: trivy-${{ matrix.notebook_type }}
-    needs: lower-case
+    needs: to-lower-case
     strategy:
       matrix:
         notebook_type:
