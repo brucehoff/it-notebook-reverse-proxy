@@ -92,6 +92,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6.4.0
         with:
+          build-args: notebook_type=${{ inputs.NOTEBOOK_TYPE }}
           context: .
           push: true
           tags: ${{ matrix.value }}
