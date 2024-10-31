@@ -85,4 +85,7 @@ jobs:
           sarif_file: ${{ env.sarif_file_name  }}
           category: ${{ inputs.NOTEBOOK_TYPE }}
           wait-for-processing: true
+
+    outputs:
+      trivy_conclusion: steps.trivy.outputs.conclusion
 ...
