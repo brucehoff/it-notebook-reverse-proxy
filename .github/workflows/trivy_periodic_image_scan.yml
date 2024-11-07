@@ -44,7 +44,7 @@ jobs:
 
   # If scan failed, rebuild the image
   update-image:
-    if: ${{needs.trivy-matrix.outputs.trivy_conclusion == 'failure' }}
+    if: ${{!cancelled() && needs.trivy-matrix.outputs.trivy_conclusion == 'failure' }}
     needs: trivy-matrix
     runs-on: ubuntu-latest
     # tag the repo to trigger a new build
