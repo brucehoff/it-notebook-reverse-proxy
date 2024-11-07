@@ -4,6 +4,7 @@ ARG notebook_type=jupyter
 
 # Update the repository sources list and install apache
 RUN apt-get update && \
+apt-get -y upgrade && \
 apt-get install -y python3-dev git unzip apache2 apache2-dev curl pip && apt-get clean
 
 # patterned after https://github.com/Sage-Bionetworks-IT/packer-rstudio/blob/master/src/playbook.yaml#L76-L91

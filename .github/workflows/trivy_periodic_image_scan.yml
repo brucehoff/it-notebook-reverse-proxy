@@ -41,4 +41,17 @@ jobs:
       # Docker images can only be lower case
       IMAGE_NAME: ghcr.io/${{ needs.to-lower-case.outputs.lowercase-repo-name
             }}-${{ matrix.notebook_type }}:main
+
+  # If scan failed, rebuild the image
+  update-image:
+    if: ${{!cancelled() && needs.trivy-matrix.outputs.trivy_conclusion == 'failure' }}
+    needs: trivy-matrix
+    runs-on: ubuntu-latest
+    # tag the repo to trigger a new build
+    steps:
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 ...

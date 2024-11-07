@@ -30,6 +30,11 @@ on:
 
 env:
   sarif_file_name: trivy-results-${{ inputs.NOTEBOOK_TYPE  }}.sarif
+  # downloading the trivy-db from its default GitHub location fails because
+  # the site experiences too many downloads.  The fix is to pull from this
+  # alternate location.
+  TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db:2
+  TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db:1
 
 jobs:
   trivy:
@@ -85,4 +90,7 @@ jobs:
           sarif_file: ${{ env.sarif_file_name  }}
           category: ${{ inputs.NOTEBOOK_TYPE }}
           wait-for-processing: true
+
+    outputs:
+      trivy_conclusion: steps.trivy.outputs.conclusion
 ...
