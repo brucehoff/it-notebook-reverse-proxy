@@ -27,7 +27,10 @@ on:
         required: false
         type: number
         default: 0
-
+    outputs:
+      trivy_conclusion:
+        description: "The pass/fail return code from Trivy"
+        value: ${{ jobs.trivy.outputs.trivy_conclusion }}
 env:
   sarif_file_name: trivy-results-${{ inputs.NOTEBOOK_TYPE  }}.sarif
   # downloading the trivy-db from its default GitHub location fails because
@@ -92,5 +95,5 @@ jobs:
           wait-for-processing: true
 
     outputs:
-      trivy_conclusion: steps.trivy.outputs.conclusion
+      trivy_conclusion: steps.trivy.conclusion
 ...
