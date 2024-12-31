@@ -1,4 +1,6 @@
 ---
+ci:
+  autoupdate_schedule: monthly
 repos:
   - repo: https://github.com/awslabs/git-secrets
     rev: b9e96b3212fa06aea65964ff0d5cda84ce935f38
@@ -7,7 +9,7 @@ repos:
         entry: git-secrets
         args: [--scan, --recursive]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v5.0.0
     hooks:
       # On Windows, git will convert all CRLF to LF,
       # but only after all hooks are done executing.
@@ -21,15 +23,15 @@ repos:
       - id: check-json
       - id: check-ast
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.29.0
+    rev: v1.35.1
     hooks:
       - id: yamllint
   - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.4.2
+    rev: v1.5.5
     hooks:
       - id: remove-tabs
   - repo: https://github.com/sirosen/check-jsonschema
-    rev: 0.21.0
+    rev: 0.29.4
     hooks:
       - id: check-github-workflows
       - id: check-github-actions
