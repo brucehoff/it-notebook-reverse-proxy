@@ -90,7 +90,7 @@ jobs:
           # comma separated list of tags
           tag_list=${{ inputs.TAGS }}
           # prepend each tag with repo name, e.g., "tag1"->"reponame:tag1"; "tag1,tag2"->"reponame:tag1,reponame:tag2"
-          image_references=$repo_name:${tag_list/,/,$repo_name:}
+          image_references=$repo_name:${tag_list//,/,$repo_name:}
           echo "image_references=$image_references" >> $GITHUB_ENV
 
       - name: Build and push Docker image

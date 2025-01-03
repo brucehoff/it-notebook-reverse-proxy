@@ -10,6 +10,8 @@ on:
   pull_request:
     branches:
       - '*'
+env:
+  TAG_PREFIX: PREFIX
 
 jobs:
   tests:
@@ -30,16 +32,26 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4.1.1
         with:
-          images: |
+          images: ${{ env.TAG_PREFIX }} # dummy value since blank is not allowed
           tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}} # major.minor.patch
             type=semver,pattern={{major}}.{{minor}}
 
+      - name: Remove dummy prefix
+        id: removed
+        run: |
+          # comma separated list of tags
+          reference_list=${{ steps.meta.outputs.tags }}
+          prefix_to_remove=${{ env.TAG_PREFIX }}:
+          # remove prefix, e.g., ->"PREFIX:tag1,PREFIX:tag2"->"tag1,tag2"
+          tags=${reference_list//$prefix_to_remove/}
+          echo "tags=$tags" >> $GITHUB_ENV
+
     outputs:
       image_repo: ghcr.io/${{ env.repo_name }}
-      tags: ${{ steps.meta.outputs.tags }}
+      tags: ${{ env.tags }}
 
   docker-build-push:
     if: ${{ github.event_name == 'push' }}
