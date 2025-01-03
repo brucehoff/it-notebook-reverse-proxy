@@ -2,8 +2,6 @@
 #
 # This workflow scans the published container images
 # for new vulnerabilities daily, publishing findings.
-# Findings will be associated with the 'main' branch
-# of the repo' in the GitHub Security tab.
 #
 name: Trivy Periodic Image Scan
 
@@ -13,21 +11,29 @@ on:
     - cron: "0 0 * * *"
 
 jobs:
-  to-lower-case:
+  get-image-reference:
     runs-on: ubuntu-latest
-    name: to-lower-case
     steps:
-      - name: Ensure repo' name is lower case
-        id: repo
-        uses: vishalmamidi/lowercase-action@v1
+      - name: Convert repo' name to lower case
+        id: to_lower_case
+        run: |
+          # While GitHub repo's can be mixed (upper and lower) case,
+          # Docker images can only be lower case
+          repo_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
+          echo "repo_name=$repo_name" >> $GITHUB_ENV
+      - name: Find current version
+        id: find_version
+        uses: mathieudutour/github-tag-action@v6.2
         with:
-          string: ${{ github.repository }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          dry_run: true # setting to 'true' means no new version is created
     outputs:
-      lowercase-repo-name: ${{ steps.repo.outputs.lowercase }}
+      image_repo: ghcr.io/${{ env.repo_name }}
+      image_tag: ${{ steps.find_version.outputs.previous_version }}
 
   trivy-matrix:
-    name: trivy-${{ matrix.notebook_type }}
-    needs: to-lower-case
+    name: trivy
+    needs: [get-image-reference]
     strategy:
       matrix:
         notebook_type:
@@ -37,16 +43,15 @@ jobs:
     with:
       NOTEBOOK_TYPE: ${{ matrix.notebook_type }}
       SOURCE_TYPE: image
-      # While GitHub repo's can be mixed (upper and lower) case,
-      # Docker images can only be lower case
-      IMAGE_NAME: ghcr.io/${{ needs.to-lower-case.outputs.lowercase-repo-name
-            }}-${{ matrix.notebook_type }}:main
+      IMAGE_NAME: ghcr.io/${{ needs.get-image-reference.outputs.image_repo
+            }}-${{ matrix.notebook_type }}:${{ needs.get-image-reference.outputs.image_tag }}
+      EXIT_CODE: 1
 
-  # If scan failed, rebuild the image
-  update-image:
-    if: ${{!cancelled() && needs.trivy-matrix.outputs.trivy_conclusion == 'failure' }}
+  # If scan failed, bump tag and rebuild the image
+  bump-tag:
     needs: trivy-matrix
     runs-on: ubuntu-latest
+    if: ${{!cancelled() && needs.trivy-matrix.outputs.trivy_conclusion == 'failure' }}
     # tag the repo to trigger a new build
     steps:
       - name: Bump version and push tag
@@ -54,4 +59,36 @@ jobs:
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: parse new version
+        id: parsed
+        uses: booxmedialtd/ws-action-parse-semver@v1
+        with:
+          input_string: ${{ steps.tag_version.outputs.new_version }}
+    outputs:
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
+      new_version: ${{ steps.tag_version.outputs.new_version }}
+      new_major_minor: ${{ steps.parsed.outputs.major }}.${{ steps.parsed.outputs.minor }}
+      conclusion: ${{ steps.parsed.conclusion }}
+
+  tests:
+    needs: [trivy-matrix, bump-tag]
+    if: ${{!cancelled() && needs.trivy-matrix.outputs.trivy_conclusion == 'failure' &&
+      needs.bump-tag.outputs.conclusion == 'success' }}
+    uses: "./.github/workflows/test.yml"
+
+  update-image:
+    needs: [trivy-matrix, tests]
+    if: ${{!cancelled() && needs.trivy-matrix.outputs.trivy_conclusion == 'failure' &&
+      needs.tests.outputs.conclusion == 'success' }}
+    strategy:
+      matrix:
+        notebook_type:
+          - jupyter
+          - rstudio
+    uses: "./.github/workflows/docker_build_push.yml"
+    with:
+      NOTEBOOK_TYPE: ${{ matrix.notebook_type }}
+      REF_TO_CHECKOUT: ${{ needs.bump-tag.outputs.new_tag }}
+      TAGS: "${{ needs.bump-tag.outputs.new_version }},\
+        ${{ needs.bump-tag.outputs.new_major_minor }}"
 ...

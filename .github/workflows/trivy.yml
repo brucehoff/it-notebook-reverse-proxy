@@ -23,14 +23,15 @@ on:
       IMAGE_NAME:
         required: true
         type: string
-      EXIT_CODE: # return code for failed scan. 0 means OK
+      EXIT_CODE: # return code for failed scan. 0 means OK.  Non-zero will fail the build when there are findings.
         required: false
         type: number
         default: 0
     outputs:
       trivy_conclusion:
-        description: "The pass/fail return code from Trivy"
+        description: "The pass/fail status from Trivy"
         value: ${{ jobs.trivy.outputs.trivy_conclusion }}
+
 env:
   sarif_file_name: trivy-results-${{ inputs.NOTEBOOK_TYPE  }}.sarif
   # downloading the trivy-db from its default GitHub location fails because
@@ -66,7 +67,7 @@ jobs:
           }} | docker import - ${{ inputs.IMAGE_NAME }}
 
       - name: Run Trivy vulnerability scanner for any major issues
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@0.28.0
         id: trivy
         with:
           image-ref: ${{ inputs.IMAGE_NAME }}
@@ -88,6 +89,10 @@ jobs:
         # after Trivy exits with HIGH/CRITICAL findings
         # See https://github.com/aquasecurity/trivy-action?\
         # tab=readme-ov-file#using-trivy-with-github-code-scanning
+        # Note that here instead of using `always()` which would
+        # allow the step to run if *any* preceeding step failed,
+        # this logic ensures that the step ony runs if all steps
+        # succeed or if only  the 'trivy' step fails.
         if: ${{ success() || steps.trivy.conclusion=='failure' }}
         with:
           sarif_file: ${{ env.sarif_file_name  }}
@@ -95,5 +100,5 @@ jobs:
           wait-for-processing: true
 
     outputs:
-      trivy_conclusion: steps.trivy.conclusion
+      trivy_conclusion: ${{ steps.trivy.conclusion }}
 ...
