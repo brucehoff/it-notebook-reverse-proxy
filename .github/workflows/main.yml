@@ -11,7 +11,7 @@ on:
     branches:
       - '*'
 env:
-  TAG_PREFIX: PREFIX
+  TAG_PREFIX: prefix # must be lower case
 
 jobs:
   tests:
@@ -21,13 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [tests]
     steps:
-      - name: Convert repo' name to lower case
-        id: to_lower_case
-        run: |
-          # While GitHub repo's can be mixed (upper and lower) case,
-          # Docker images can only be lower case
-          repo_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          echo "repo_name=$repo_name" >> $GITHUB_ENV
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v4.1.1
@@ -47,13 +40,12 @@ jobs:
           echo reference_list $reference_list
           prefix_to_remove=${{ env.TAG_PREFIX }}:
           echo prefix_to_remove $prefix_to_remove
-          # remove prefix, e.g., ->"PREFIX:tag1,PREFIX:tag2"->"tag1,tag2"
+          # remove prefix, e.g., ->"prefix:tag1,prefix:tag2"->"tag1,tag2"
           tags=${reference_list//$prefix_to_remove/}
           echo tags $tags
           echo "tags=$tags" >> $GITHUB_ENV
 
     outputs:
-      image_repo: ghcr.io/${{ env.repo_name }}
       tags: ${{ env.tags }}
 
   docker-build-push:
