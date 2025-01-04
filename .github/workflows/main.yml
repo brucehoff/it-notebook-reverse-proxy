@@ -37,12 +37,9 @@ jobs:
         run: |
           # comma separated list of tags
           reference_list=${{ steps.meta.outputs.tags }}
-          echo reference_list $reference_list
           prefix_to_remove=${{ env.TAG_PREFIX }}:
-          echo prefix_to_remove $prefix_to_remove
           # remove prefix, e.g., ->"prefix:tag1,prefix:tag2"->"tag1,tag2"
           tags=${reference_list//$prefix_to_remove/}
-          echo tags $tags
           echo "tags=$tags" >> $GITHUB_ENV
 
     outputs:

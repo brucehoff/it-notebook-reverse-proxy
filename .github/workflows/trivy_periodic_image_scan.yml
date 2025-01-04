@@ -77,8 +77,9 @@ jobs:
     uses: "./.github/workflows/test.yml"
 
   update-image:
-    needs: [trivy-matrix, tests]
+    needs: [trivy-matrix, bump-tag, tests]
     if: ${{!cancelled() && needs.trivy-matrix.outputs.trivy_conclusion == 'failure' &&
+      needs.bump-tag.outputs.conclusion == 'success'  &&
       needs.tests.outputs.conclusion == 'success' }}
     strategy:
       matrix:
