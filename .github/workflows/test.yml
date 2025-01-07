@@ -1,0 +1,46 @@
+---
+#
+# Run static analysis, verify that image will build, and run tests
+#
+name: Build and publish a Docker image
+
+on:
+  workflow_call:
+    inputs:
+      REF_TO_CHECKOUT:
+        required: false
+        type: string
+        description: reference to checkout, e.g. a tag like v1.0.1.  Defaults to the branch/tag of the current event.
+    outputs:
+      conclusion:
+        value: ${{ jobs.tests.outputs.conclusion }}
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.REF_TO_CHECKOUT }}
+
+      - name: Static Analysis
+        uses: pre-commit/action@v3.0.0
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v6.4.0
+        with:
+          context: .
+          build-args: notebook_type=jupyter
+          push: false
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run unit tests
+        id: unit_tests
+        run: python -m pytest tests/ -s -v
+
+
+    outputs:
+      conclusion: ${{ steps.unit_tests.conclusion }}
+...

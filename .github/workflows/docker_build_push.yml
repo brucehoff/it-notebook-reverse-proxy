@@ -12,31 +12,27 @@ on:
       NOTEBOOK_TYPE:
         required: true
         type: string
+      REF_TO_CHECKOUT:
+        required: false
+        type: string
+        description: reference to checkout, e.g. a tag like v1.0.1.  Defaults to the branch/tag of the current event.
+      TAGS:
+        required: true
+        type: string
+        description: "comma delimited list of tags, e.g., 2.3.4, or main,1.0,1.0.1"
 
 env:
-  IMAGE_PATH: ghcr.io/${{ github.repository }}-${{ inputs.NOTEBOOK_TYPE }}
   TARFILE_NAME: ${{ inputs.NOTEBOOK_TYPE }}-image.tar
 
 jobs:
-  build:
+  tests:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v4.1.1
         with:
-          images: ${{ env.IMAGE_PATH }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}} # major.minor.patch
-            type=semver,pattern={{major}}.{{minor}}
+          ref: ${{ inputs.REF_TO_CHECKOUT }}
 
       - name: Build Docker image for scanning, but don't push to ghcr.io yet
         uses: docker/build-push-action@v6.4.0
@@ -45,8 +41,6 @@ jobs:
           build-args: notebook_type=${{ inputs.NOTEBOOK_TYPE }}
           push: false
           outputs: type=tar,dest=${{ env.TARFILE_NAME }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
 
       - name: Upload tarball for use by Trivy job
         uses: actions/upload-artifact@v4
@@ -55,28 +49,25 @@ jobs:
           path: ${{ env.TARFILE_NAME }}
 
     outputs:
-      meta_json: ${{ steps.meta.outputs.json }}
       tarfile_artifact: ${{ env.TARFILE_NAME }}
 
   trivy-scan:
-    needs: build
+    needs: tests
     uses: "./.github/workflows/trivy.yml"
     with:
       NOTEBOOK_TYPE: ${{ inputs.NOTEBOOK_TYPE }}
       SOURCE_TYPE: tar
       IMAGE_NAME: image-name
-      TARFILE_NAME: ${{ needs.build.outputs.tarfile_artifact }}
+      TARFILE_NAME: ${{ needs.tests.outputs.tarfile_artifact }}
       EXIT_CODE: 1
 
   push-image:
-    needs: [build, trivy-scan]
+    if: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
+    needs: [tests, trivy-scan]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    strategy:
-      matrix:
-        value: ${{ fromJSON(needs.build.outputs.meta_json).tags }}
 
     steps:
       - name: Login to GitHub Container Registry
@@ -88,6 +79,19 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.REF_TO_CHECKOUT }}
+
+      - name: Prepend image references with repo' names to produce image references
+        id: image_references
+        run: |
+          # convert repo' name to lower case to be used as a Docker name
+          repo_name=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')-${{ inputs.NOTEBOOK_TYPE }}
+          # comma separated list of tags
+          tag_list=${{ inputs.TAGS }}
+          # prepend each tag with repo name, e.g., "tag1"->"reponame:tag1"; "tag1,tag2"->"reponame:tag1,reponame:tag2"
+          image_references=$repo_name:${tag_list//,/,$repo_name:}
+          echo "image_references=$image_references" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6.4.0
@@ -95,5 +99,5 @@ jobs:
           build-args: notebook_type=${{ inputs.NOTEBOOK_TYPE }}
           context: .
           push: true
-          tags: ${{ matrix.value }}
+          tags: ${{ env.image_references }}
 ...
