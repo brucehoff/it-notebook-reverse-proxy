@@ -39,6 +39,7 @@ jobs:
         notebook_type:
           - jupyter
           - rstudio
+      fail-fast: false
     uses: "./.github/workflows/trivy.yml"
     with:
       NOTEBOOK_TYPE: ${{ matrix.notebook_type }}
